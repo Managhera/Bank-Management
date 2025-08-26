@@ -99,6 +99,7 @@ class bank {
             {
                 logged_in = true;
                 System.out.println("Login successful!");
+                balance();// call balance deposit and withdraw
                 break;
             }
         }
@@ -109,4 +110,34 @@ class bank {
         }
     }
 
+        // method for balance
+    void balance() {
+        System.out.println("1. Deposit  2. Withdraw");
+        int option = sc.nextInt();
+
+        System.out.print("Enter amount: ");
+        double amount = sc.nextDouble();
+
+        if (option == 1) 
+        {
+            balances[i] = balances[i] + amount;
+            System.out.println("Deposit Amount is = " + amount);
+        } 
+        else if (option == 2) 
+        {
+            if (amount <= balances[i]) {
+                balances[i] = balances[i] - amount;
+                System.out.println("Withdraw Amount is = " + amount);
+            } else {
+                System.out.println("Current balance is Low!");
+            }
+        } 
+        else 
+        {
+            System.out.println("Invalid transaction");
+        }
+
+        System.out.println("Current Balance is : " + balances[i]);
+
+    }
 }
