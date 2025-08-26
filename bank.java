@@ -1,11 +1,25 @@
 import java.util.Scanner;
 
+// User class-Encapsulation 
+class User {
+    String username;
+    String password;
+    String email;
+    double balance;
+
+    // para.. Constructor
+    User(String username, String password, String email) 
+    {
+        this.username = username;
+        this.password = password;
+        this.email = email;
+        this.balance = 0.0; 
+    }
+}
+
 class bank {
 
-    String[] usernames = new String[20];
-    String[] passwords = new String[20];
-    String[] emails = new String[20];
-    double[] balances = new double[20];
+    User[] users = new User[20];
     int countOfuser = 0, i;
 
     Scanner sc = new Scanner(System.in);
@@ -78,10 +92,7 @@ void registerUser() {
 
 
     // If all are valid → register user
-    usernames[countOfuser] = username;
-    passwords[countOfuser] = password;
-    emails[countOfuser] = email;
-    balances[countOfuser] = 0.0;
+    users[countOfuser] = new User(username, password, email);
     countOfuser++;
 
     System.out.println(" Registration successful!");
@@ -101,7 +112,7 @@ void registerUser() {
         
         for (int i = 0; i < countOfuser; i++) 
         {
-            if (usernames[i].equals(username) && passwords[i].equals(password)) 
+            if (users[i].username.equals(username) && users[i].password.equals(password)) 
             {
                 logged_in = true;
                 System.out.println("Login successful!");
@@ -126,13 +137,13 @@ void registerUser() {
 
         if (option == 1) 
         {
-            balances[i] = balances[i] + amount;
+            users[i].balance = users[i].balance + amount;
             System.out.println("Deposit Amount is = " + amount);
         } 
         else if (option == 2) 
         {
-            if (amount <= balances[i]) {
-                balances[i] = balances[i] - amount;
+            if (amount <= users[i].balance) {
+                users[i].balance = users[i].balance - amount;
                 System.out.println("Withdraw Amount is = " + amount);
             } else {
                 System.out.println("Current balance is Low!");
@@ -143,7 +154,7 @@ void registerUser() {
             System.out.println("Invalid transaction");
         }
 
-        System.out.println("Current Balance is : " + balances[i]);
+        System.out.println("Current Balance is : " + users[i].balance);
 
     }
 }
