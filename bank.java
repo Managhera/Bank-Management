@@ -42,45 +42,51 @@ class bank {
     }
 
 
-    // method of register
-    void registerUser() 
-    {
+// method of register
+void registerUser() {
+
+    String username, email, password;
+
+    // Re-input username until valid
+    do {
         System.out.print("Enter username: ");
-        String username = sc.nextLine();
+        username = sc.nextLine().trim();
+        if (username == null || !username.matches("^[A-Za-z0-9_]{3,}$")) {
+            System.out.println("Username must be at least 3 characters (letters, numbers, underscore allowed).");  
+        }
+    } while (username == null || !username.matches("^[A-Za-z0-9_]{3,}$"));
 
+    
+    // Re-input email until valid
+    do {
         System.out.print("Enter Email: ");
-        String email = sc.nextLine();
+        email = sc.nextLine().trim();
+        if (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$")) {
+            System.out.println("Invalid email format.");  
+        }
+    } while (email == null || !email.matches("^[A-Za-z0-9+_.-]+@[A-Za-z0-9.-]+$"));
 
+
+    // Re-input password until valid
+    do {
         System.out.print("Enter password: ");
-        String password = sc.nextLine();
-
-        // validate name ,pass,email
-        if (validate(username, password,email)) 
-        {
-            usernames[countOfuser] = username;
-            passwords[countOfuser] = password;
-            emails[countOfuser] = email;
-            balances[countOfuser] = 0.0;
-            countOfuser++;
-
-            System.out.println("Registration successful!");
-        } 
-        else 
-        {
-            System.out.println("Invalid username or password. Please try again.");
+        password = sc.nextLine().trim();
+        if (password == null || !password.matches("^(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$")) {
+            System.out.println("Password must be at least 8 characters and contain a digit & special character.");  
         }
-    }
+    } while (password == null || !password.matches("^(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$"));
 
 
-    // validate() method
-    boolean validate(String username, String password ,String email) 
-    {  
-        if (username != null && password != null  && email.contains("@") && email.contains(".")) 
-        {
-            return true;
-        }
-        return false;
-    }
+    // If all are valid → register user
+    usernames[countOfuser] = username;
+    passwords[countOfuser] = password;
+    emails[countOfuser] = email;
+    balances[countOfuser] = 0.0;
+    countOfuser++;
+
+    System.out.println(" Registration successful!");
+}
+
 
     // method of login
     void loginUser() 
