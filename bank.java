@@ -1,27 +1,55 @@
 import java.util.Scanner;
 
-// User class-Encapsulation 
 class User {
-    String username;
-    String password;
-    String email;
-    double balance;
+    private String username;
+    private String password;
+    private String email;
+    private BankAccount account; // Each User HAS-A BankAccount
 
-    // para.. Constructor
-    User(String username, String password, String email) 
-    {
+    // Constructor
+    User(String username, String password, String email) {
         this.username = username;
         this.password = password;
         this.email = email;
-        this.balance = 0.0; 
+        this.account = new BankAccount(this); // Create new account linked to this user
+    }
+    // Getters
+    public String getusername() { return username; }
+    public String getpassword() { return password; }
+    public String getemail() { return email; }
+    public BankAccount getaccount() { return account; }
+}
+
+//  BankAccount class with encapsulation
+class BankAccount {
+    private String accountNumber;
+    private double balance;   //  private
+    private User owner;
+
+    // Constructor
+    public BankAccount(User owner) {
+        this.owner = owner;
+        this.accountNumber = "AC" + System.currentTimeMillis(); // unique account no
+        this.balance = 0.0;
+    }
+
+    // Getters
+    public String getAccountNumber() { return accountNumber; }
+    public double getBalance() { return balance; }
+    public User getOwner() { return owner; }
+
+    // Setter (only Bank class will modify)
+    public void setBalance(double balance) {
+        this.balance = balance;
     }
 }
+
 
 class bank {
 
     User[] users = new User[20];
     int countOfuser = 0, i;
-
+    User currentUser = null;
     Scanner sc = new Scanner(System.in);
 
     public static void main(String[] args) {
@@ -112,12 +140,13 @@ void registerUser() {
         
         for (int i = 0; i < countOfuser; i++) 
         {
-            if (users[i].username.equals(username) && users[i].password.equals(password)) 
+            if (users[i].getusername().equals(username) && users[i].getpassword().equals(password)) 
             {
                 logged_in = true;
+                currentUser = users[i];
                 System.out.println("Login successful!");
-                balance();// call balance deposit and withdraw
-                break;
+                accountMenu();  
+                return;
             }
         }
 
@@ -127,34 +156,69 @@ void registerUser() {
         }
     }
 
-        // method for balance
-    void balance() {
-        System.out.println("1. Deposit  2. Withdraw");
-        int option = sc.nextInt();
+        // method for account
+    private void accountMenu() {
+        while (true) {
+            System.out.println("\n--- Account Menu ---");
+            System.out.println("1. Deposit");
+            System.out.println("2. Withdraw");
+            System.out.println("3. Check Balance");
+            System.out.println("4. Account Details");
+            System.out.println("5. Logout");
+            System.out.print("Enter choice: ");
+            int choice = sc.nextInt();
 
-        System.out.print("Enter amount: ");
-        double amount = sc.nextDouble();
+            BankAccount account = currentUser.getaccount(); //get logged in user's account
 
-        if (option == 1) 
-        {
-            users[i].balance = users[i].balance + amount;
-            System.out.println("Deposit Amount is = " + amount);
-        } 
-        else if (option == 2) 
-        {
-            if (amount <= users[i].balance) {
-                users[i].balance = users[i].balance - amount;
-                System.out.println("Withdraw Amount is = " + amount);
-            } else {
-                System.out.println("Current balance is Low!");
-            }
-        } 
-        else 
-        {
-            System.out.println("Invalid transaction");
+            switch (choice) {
+                    case 1:
+                        System.out.print("Enter deposit amount: ");
+                        double deposit = sc.nextDouble();
+                        if (deposit > 0) {
+                            account.setBalance(account.getBalance() + deposit);
+                            System.out.println("Deposited: " + deposit);
+                        } else {
+                            System.out.println("Invalid deposit amount!");
+                        }
+                        break;
+
+                    case 2:
+                        System.out.print("Enter withdraw amount: ");
+                        double withdraw = sc.nextDouble();
+                        if (withdraw > 0 && withdraw <= account.getBalance()) {
+                            account.setBalance(account.getBalance() - withdraw);
+                            System.out.println("Withdrawn: " + withdraw);
+                        } else {
+                            System.out.println("Insufficient balance or invalid amount!");
+                        }
+                        break;
+
+                    case 3:
+                        System.out.println("Current Balance: " + account.getBalance());
+                        break;
+
+                    case 4:
+                        showAccountDetails(account);
+                        break;
+
+                    case 5:
+                        System.out.println("Logged out!");
+                        return; // exit method
+                    
+                    default:
+                        System.out.println("Invalid option");
+                        break;
+                }
+
         }
+    }
 
-        System.out.println("Current Balance is : " + users[i].balance);
-
+    // Show account details
+    private void showAccountDetails(BankAccount account) {
+        System.out.println("\n--- Account Details ---");
+        System.out.println("Account Number : " + account.getAccountNumber());
+        System.out.println("Owner Username : " + account.getOwner().getusername());
+        System.out.println("Owner Email    : " + account.getOwner().getemail());
+        System.out.println("Balance        : " + account.getBalance());
     }
 }
