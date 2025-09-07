@@ -1,46 +1,117 @@
 import java.util.Scanner;
+//protect username ,email with Encapsulation
+class person {
+    protected String username;
+    protected String email;
 
-class User {
-    private String username;
-    private String password;
-    private String email;
-    private BankAccount account; // Each User HAS-A BankAccount
-
-    // Constructor
-    User(String username, String password, String email) {
+    public person(String username, String email) {
         this.username = username;
-        this.password = password;
         this.email = email;
-        this.account = new BankAccount(this); // Create new account linked to this user
     }
-    // Getters
+
     public String getusername() { return username; }
-    public String getpassword() { return password; }
     public String getemail() { return email; }
-    public BankAccount getaccount() { return account; }
 }
 
-//  BankAccount class with encapsulation
-class BankAccount {
-    private String accountNumber;
-    private double balance;   //  private
-    private User owner;
+//Extend person use Encapsulation
+class User extends person {
+    private String password;
+    private BankAccount account;
+    private String type;
 
-    // Constructor
+    public User(String username, String password, String email, String type) {
+        super(username, email);
+        this.password = password;
+        this.type = type;
+
+        //check which type of account 
+        if (type.equals("saving")) {
+            this.account = new savingaccount(this);
+        } 
+        else if (type.equals("current")) {
+            this.account = new currentaccount(this);
+        }
+
+        
+    }
+
+    public String getpassword() { return password; }
+    public BankAccount getaccount() { return account; }
+    public String gettype() { return type; }
+}
+
+// abstract account class
+abstract class BankAccount {
+    protected String accountNumber;
+    protected double balance;
+    protected User owner;
+
     public BankAccount(User owner) {
         this.owner = owner;
-        this.accountNumber = "AC" + System.currentTimeMillis(); // unique account no
+        this.accountNumber = "AC" + System.currentTimeMillis();
         this.balance = 0.0;
     }
 
-    // Getters
-    public String getAccountNumber() { return accountNumber; }
-    public double getBalance() { return balance; }
-    public User getOwner() { return owner; }
+    // abstract method withdrow and deposite
+    public abstract void withdraw(double amount);
+    public abstract void deposit(double amount);
 
-    // Setter (only Bank class will modify)
-    public void setBalance(double balance) {
-        this.balance = balance;
+    //getter
+    public double getBalance() { return balance; }
+    public String getAccountNumber() { return accountNumber; }
+    public User getOwner() { return owner; }
+}
+
+// saving account 
+class savingaccount extends BankAccount {
+    public savingaccount(User owner) {
+        super(owner);
+    }
+
+    public void deposit(double amount) {
+        if (amount >= 0) {
+            balance += amount;
+            System.out.println("Deposited in Saving: " + amount);
+        } else {
+            System.out.println("Invalid deposit!");
+        }
+    }
+
+    public void withdraw(double amount) {
+        if (amount < 0) {
+            System.out.println("Invalid amount!");
+        } else if (amount > balance) {
+            System.out.println("Insufficient balance in Saving Account!");
+        } else {
+            balance -= amount;
+            System.out.println("Withdrawn from Saving: " + amount);
+        }
+    }
+}
+
+// current account
+class currentaccount extends BankAccount {
+    public currentaccount(User owner) {
+        super(owner);
+    }
+
+    public void deposit(double amount) {
+        if (amount >= 0) {
+            balance += amount;
+            System.out.println("Deposited in Current: " + amount);
+        } else {
+            System.out.println("Invalid deposit!");
+        }
+    }
+
+    public void withdraw(double amount) {
+        if (amount < 0) {
+            System.out.println("Invalid amount!");
+        }
+        else {
+            balance -= amount;
+            System.out.println("Withdrawn from Current: " + amount);
+        }
     }
 }
 
@@ -87,7 +158,7 @@ class bank {
 // method of register
 void registerUser() {
 
-    String username, email, password;
+    String username, email, password,type;
 
     // Re-input username until valid
     do {
@@ -118,9 +189,14 @@ void registerUser() {
         }
     } while (password == null || !password.matches("^(?=.*[0-9])(?=.*[!@#$%^&*]).{8,}$"));
 
+    do {
+        System.out.print("Enter account type (saving/current): ");
+        type = sc.nextLine().trim().toLowerCase();
+    } while (!(type.equals("saving") || type.equals("current")));
+
 
     // If all are valid → register user
-    users[countOfuser] = new User(username, password, email);
+    users[countOfuser] = new User(username, password, email ,type);
     countOfuser++;
 
     System.out.println(" Registration successful!");
@@ -171,26 +247,16 @@ void registerUser() {
             BankAccount account = currentUser.getaccount(); //get logged in user's account
 
             switch (choice) {
-                    case 1:
+                case 1:
                         System.out.print("Enter deposit amount: ");
                         double deposit = sc.nextDouble();
-                        if (deposit > 0) {
-                            account.setBalance(account.getBalance() + deposit);
-                            System.out.println("Deposited: " + deposit);
-                        } else {
-                            System.out.println("Invalid deposit amount!");
-                        }
+                        account.deposit(deposit);
                         break;
 
-                    case 2:
+                case 2:
                         System.out.print("Enter withdraw amount: ");
                         double withdraw = sc.nextDouble();
-                        if (withdraw > 0 && withdraw <= account.getBalance()) {
-                            account.setBalance(account.getBalance() - withdraw);
-                            System.out.println("Withdrawn: " + withdraw);
-                        } else {
-                            System.out.println("Insufficient balance or invalid amount!");
-                        }
+                        account.withdraw(withdraw);
                         break;
 
                     case 3:
@@ -217,6 +283,7 @@ void registerUser() {
     private void showAccountDetails(BankAccount account) {
         System.out.println("\n--- Account Details ---");
         System.out.println("Account Number : " + account.getAccountNumber());
+        System.out.println("Account Type   : " + account.getOwner().gettype());
         System.out.println("Owner Username : " + account.getOwner().getusername());
         System.out.println("Owner Email    : " + account.getOwner().getemail());
         System.out.println("Balance        : " + account.getBalance());
