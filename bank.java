@@ -14,7 +14,7 @@ class person {
 }
 
 //Extend person use Encapsulation
-class User extends person {
+class User extends person implements ILogin {
     private String password;
     private BankAccount account;
     private String type;
@@ -24,24 +24,36 @@ class User extends person {
         this.password = password;
         this.type = type;
 
-        //check which type of account 
         if (type.equals("saving")) {
-            this.account = new savingaccount(this);
-        } 
-        else if (type.equals("current")) {
-            this.account = new currentaccount(this);
+            this.account = new SavingAccount(this);
+        } else if (type.equals("current")) {
+            this.account = new CurrentAccount(this);
         }
-
-        
     }
 
     public String getpassword() { return password; }
     public BankAccount getaccount() { return account; }
     public String gettype() { return type; }
+
+  
+ 
+    public boolean login(String username, String password) {
+        return this.username.equals(username) && this.password.equals(password);
+    }
 }
 
-// abstract account class
-abstract class BankAccount {
+// Interfaces
+interface ILogin {
+    boolean login(String username, String password);
+}
+
+interface ITransaction {
+    void deposit(double amount);
+    void withdraw(double amount);
+}
+
+// Abstract account class
+abstract class BankAccount implements ITransaction {
     protected String accountNumber;
     protected double balance;
     protected User owner;
@@ -52,19 +64,14 @@ abstract class BankAccount {
         this.balance = 0.0;
     }
 
-    // abstract method withdrow and deposite
-    public abstract void withdraw(double amount);
-    public abstract void deposit(double amount);
-
-    //getter
     public double getBalance() { return balance; }
     public String getAccountNumber() { return accountNumber; }
     public User getOwner() { return owner; }
 }
 
-// saving account 
-class savingaccount extends BankAccount {
-    public savingaccount(User owner) {
+// Saving account
+class SavingAccount extends BankAccount {
+    public SavingAccount(User owner) {
         super(owner);
     }
 
@@ -89,9 +96,9 @@ class savingaccount extends BankAccount {
     }
 }
 
-// current account
-class currentaccount extends BankAccount {
-    public currentaccount(User owner) {
+// Current account
+class CurrentAccount extends BankAccount {
+    public CurrentAccount(User owner) {
         super(owner);
     }
 
@@ -107,14 +114,44 @@ class currentaccount extends BankAccount {
     public void withdraw(double amount) {
         if (amount < 0) {
             System.out.println("Invalid amount!");
-        }
-        else {
+        } else if (amount > balance) {
+            System.out.println("Insufficient balance in Current Account!");
+        } else {
             balance -= amount;
             System.out.println("Withdrawn from Current: " + amount);
         }
     }
 }
 
+// Loan class
+class Loan {
+    private double principal;
+    private double interestRate; // yearly in percentage
+    private int termMonths;
+    private double monthlyPayment;
+
+    public Loan(double principal, double interestRate, int termMonths) {
+        this.principal = principal;
+        this.interestRate = interestRate;
+        this.termMonths = termMonths;
+        calculateMonthlyPayment();
+    }
+
+    private void calculateMonthlyPayment() {
+        double monthlyRate = (interestRate / 100) / 12;
+        if (monthlyRate > 0) {
+            monthlyPayment = (principal * monthlyRate) /
+                             (1 - Math.pow(1 + monthlyRate, -termMonths));
+        } else {
+            monthlyPayment = principal / termMonths;
+        }
+    }
+
+    public double getMonthlyPayment() { return monthlyPayment; }
+    public double getPrincipal() { return principal; }
+    public double getInterestRate() { return interestRate; }
+    public int getTermMonths() { return termMonths; }
+}
 
 class bank {
 
@@ -240,20 +277,21 @@ void registerUser() {
             System.out.println("2. Withdraw");
             System.out.println("3. Check Balance");
             System.out.println("4. Account Details");
-            System.out.println("5. Logout");
+            System.out.println("5. Apply Loan");
+            System.out.println("6. Logout");
             System.out.print("Enter choice: ");
             int choice = sc.nextInt();
 
             BankAccount account = currentUser.getaccount(); //get logged in user's account
 
             switch (choice) {
-                case 1:
+                    case 1:
                         System.out.print("Enter deposit amount: ");
                         double deposit = sc.nextDouble();
                         account.deposit(deposit);
                         break;
 
-                case 2:
+                    case 2:
                         System.out.print("Enter withdraw amount: ");
                         double withdraw = sc.nextDouble();
                         account.withdraw(withdraw);
@@ -268,6 +306,10 @@ void registerUser() {
                         break;
 
                     case 5:
+                        applyLoan();
+                        break;
+
+                    case 6:
                         System.out.println("Logged out!");
                         return; // exit method
                     
@@ -277,7 +319,7 @@ void registerUser() {
                 }
 
         }
-    }
+    }   
 
     // Show account details
     private void showAccountDetails(BankAccount account) {
@@ -287,5 +329,21 @@ void registerUser() {
         System.out.println("Owner Username : " + account.getOwner().getusername());
         System.out.println("Owner Email    : " + account.getOwner().getemail());
         System.out.println("Balance        : " + account.getBalance());
+    }
+
+        private void applyLoan() {
+        System.out.print("Enter principal amount: ");
+        double principal = sc.nextDouble();
+        System.out.print("Enter annual interest rate (%): ");
+        double rate = sc.nextDouble();
+        System.out.print("Enter term in months: ");
+        int term = sc.nextInt();
+
+        Loan loan = new Loan(principal, rate, term);
+        System.out.println("Loan Approved!");
+        System.out.println("Principal: " + loan.getPrincipal());
+        System.out.println("Rate: " + loan.getInterestRate() + "%");
+        System.out.println("Term: " + loan.getTermMonths() + " months");
+        System.out.println("Monthly Payment: " + loan.getMonthlyPayment());
     }
 }
