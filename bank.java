@@ -18,6 +18,7 @@ class User extends person implements ILogin {
     private String password;
     private BankAccount account;
     private String type;
+    private loan loan;
 
     public User(String username, String password, String email, String type) {
         super(username, email);
@@ -34,9 +35,10 @@ class User extends person implements ILogin {
     public String getpassword() { return password; }
     public BankAccount getaccount() { return account; }
     public String gettype() { return type; }
+    public loan getLoan() { return loan; }
+    public void setLoan(loan loan) { this.loan = loan; }
 
   
- 
     public boolean login(String username, String password) {
         return this.username.equals(username) && this.password.equals(password);
     }
@@ -124,33 +126,47 @@ class CurrentAccount extends BankAccount {
 }
 
 // Loan class
-class Loan {
-    private double principal;
-    private double interestRate; // yearly in percentage
-    private int termMonths;
-    private double monthlyPayment;
+class loan {
+        private double principal;
+        private double interestRate;
+        private int termMonths;
+        private double monthlyPayment;
+        private double remainingBalance;
+        private boolean active;
 
-    public Loan(double principal, double interestRate, int termMonths) {
-        this.principal = principal;
-        this.interestRate = interestRate;
-        this.termMonths = termMonths;
-        calculateMonthlyPayment();
-    }
-
-    private void calculateMonthlyPayment() {
-        double monthlyRate = (interestRate / 100) / 12;
-        if (monthlyRate > 0) {
-            monthlyPayment = (principal * monthlyRate) /
-                             (1 - Math.pow(1 + monthlyRate, -termMonths));
-        } else {
-            monthlyPayment = principal / termMonths;
+        public loan(double principal, double interestRate, int termMonths) {
+            this.principal = principal;
+            this.interestRate = interestRate;
+            this.termMonths = termMonths;
+            this.remainingBalance = principal;
+            this.active = true;
+            calculateMonthlyPayment();
         }
-    }
 
-    public double getMonthlyPayment() { return monthlyPayment; }
-    public double getPrincipal() { return principal; }
-    public double getInterestRate() { return interestRate; }
-    public int getTermMonths() { return termMonths; }
+        private void calculateMonthlyPayment() {
+            double monthlyRate = (interestRate / 100) / 12;
+            if (monthlyRate > 0) {
+                monthlyPayment = (principal * monthlyRate) /
+                                (1 - Math.pow(1 + monthlyRate, -termMonths));
+            } else {
+                monthlyPayment = principal / termMonths;
+            }
+        }
+
+        public void makePayment() {
+            if (!active) {
+                System.out.println("Loan already repaid!");
+                return;
+            }
+            remainingBalance -= monthlyPayment;
+            System.out.println("Paid: " + monthlyPayment + " | Remaining: " + remainingBalance);
+            if (remainingBalance <= 0) {
+                active = false;
+                System.out.println("🎉 Loan fully paid off!");
+            }
+        }
+        public double getMonthlyPayment() { return monthlyPayment; }
+        public boolean isActive() { return active; }
 }
 
 class bank {
@@ -278,7 +294,8 @@ void registerUser() {
             System.out.println("3. Check Balance");
             System.out.println("4. Account Details");
             System.out.println("5. Apply Loan");
-            System.out.println("6. Logout");
+            System.out.println("6. Pay Loan");
+            System.out.println("7. Logout");
             System.out.print("Enter choice: ");
             int choice = sc.nextInt();
 
@@ -310,6 +327,10 @@ void registerUser() {
                         break;
 
                     case 6:
+                        payLoan(account);
+                        break;
+
+                    case 7:
                         System.out.println("Logged out!");
                         return; // exit method
                     
@@ -339,11 +360,22 @@ void registerUser() {
         System.out.print("Enter term in months: ");
         int term = sc.nextInt();
 
-        Loan loan = new Loan(principal, rate, term);
-        System.out.println("Loan Approved!");
-        System.out.println("Principal: " + loan.getPrincipal());
-        System.out.println("Rate: " + loan.getInterestRate() + "%");
-        System.out.println("Term: " + loan.getTermMonths() + " months");
-        System.out.println("Monthly Payment: " + loan.getMonthlyPayment());
+        loan loan = new loan(principal, rate, term);
+        currentUser.setLoan(loan);
+        System.out.println("Loan approved! Monthly Payment: " + loan.getMonthlyPayment());
+    }
+
+    void payLoan(BankAccount account) {
+        loan loan = currentUser.getLoan();
+        if (loan != null && loan.isActive()) {
+            if (account.getBalance() >= loan.getMonthlyPayment()) {
+                account.withdraw(loan.getMonthlyPayment());
+                loan.makePayment();
+            } else {
+                System.out.println("Not enough balance to pay loan.");
+            }
+        } else {
+            System.out.println("No active loan.");
+        }
     }
 }
