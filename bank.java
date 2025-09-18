@@ -1,4 +1,18 @@
 import java.util.Scanner;
+
+//try catch Exception
+class LoginFailedException extends Exception {
+    public LoginFailedException(String msg) {
+        super(msg);
+    }
+}
+
+class InsufficientBalanceException extends Exception {
+    public InsufficientBalanceException(String msg) {
+        super(msg);
+    }
+}
+
 //protect username ,email with Encapsulation
 class person {
     protected String username;
@@ -87,13 +101,17 @@ class SavingAccount extends BankAccount {
     }
 
     public void withdraw(double amount) {
-        if (amount < 0) {
-            System.out.println("Invalid amount!");
-        } else if (amount > balance) {
-            System.out.println("Insufficient balance in Saving Account!");
-        } else {
-            balance -= amount;
-            System.out.println("Withdrawn from Saving: " + amount);
+        try {
+            if (amount < 0) {
+                throw new NumberFormatException();
+            } else if (amount > balance) {
+                throw new InsufficientBalanceException("Insufficient balance in Saving Account!");
+            } else {
+                balance -= amount;
+                System.out.println("Withdrawn from Saving: " + amount);
+            }
+        } catch (InsufficientBalanceException e) {
+            System.out.println(e.getMessage());
         }
     }
 }
@@ -114,13 +132,17 @@ class CurrentAccount extends BankAccount {
     }
 
     public void withdraw(double amount) {
-        if (amount < 0) {
-            System.out.println("Invalid amount!");
-        } else if (amount > balance) {
-            System.out.println("Insufficient balance in Current Account!");
-        } else {
-            balance -= amount;
-            System.out.println("Withdrawn from Current: " + amount);
+        try {
+            if (amount < 0) {
+                throw new NumberFormatException();
+            } else if (amount > balance) {
+                throw new InsufficientBalanceException("Insufficient balance in Current Account!");
+            } else {
+                balance -= amount;
+                System.out.println("Withdrawn from Current: " + amount);
+            }
+        } catch (InsufficientBalanceException e) {
+            System.out.println(e.getMessage());
         }
     }
 }
@@ -267,6 +289,7 @@ void registerUser() {
         System.out.print("Enter password: ");
         String password = sc.nextLine();
         
+        try {
         for (int i = 0; i < countOfuser; i++) 
         {
             if (users[i].getusername().equals(username) && users[i].getpassword().equals(password)) 
@@ -279,9 +302,9 @@ void registerUser() {
             }
         }
 
-        if (!logged_in) 
-        {
-            System.out.println("Login failed.");
+          throw new LoginFailedException(" Login failed: Invalid username or password.");
+        } catch (LoginFailedException e) {
+            System.out.println(e.getMessage());
         }
     }
 
